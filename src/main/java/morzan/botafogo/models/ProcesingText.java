@@ -5,6 +5,9 @@
  */
 package morzan.botafogo.models;
 
+import com.basistech.rosette.api.RosetteAPI;
+import com.basistech.rosette.api.RosetteAPIException;
+import com.basistech.rosette.apimodel.SentimentResponse;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -14,6 +17,7 @@ import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -25,7 +29,7 @@ import java.util.Scanner;
  */
 public class ProcesingText {
     
-    public void procesarTexto(String text){
+    public void procesarTexto(String text) throws IOException, RosetteAPIException{
        // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     Properties props = new Properties();
     props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
@@ -90,6 +94,10 @@ public class ProcesingText {
       */
 
     }
+    
+        RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey("c21fd4214e81308af3f89a9b9a84e041").build();
+        SentimentResponse response = rosetteAPI.getSentiment(text);
+        System.out.println(response);
     
     }
     
