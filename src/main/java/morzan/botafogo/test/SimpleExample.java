@@ -1,5 +1,6 @@
 package morzan.botafogo.test;
 
+import com.basistech.rosette.api.RosetteAPIException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -30,7 +31,7 @@ import morzan.botafogo.models.ProcesingText;
 /** A simple corenlp example ripped directly from the Stanford CoreNLP website using text from wikinews. */
 public class SimpleExample {
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, RosetteAPIException {
     // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     
     Scanner sc = new Scanner(System.in);
@@ -40,6 +41,7 @@ public class SimpleExample {
     
     ProcesingText nlp = new ProcesingText();
     nlp.procesarTexto(text);
+    nlp.probandoRosette(text);
   }
 
 }

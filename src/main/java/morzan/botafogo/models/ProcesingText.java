@@ -7,7 +7,13 @@ package morzan.botafogo.models;
 
 import com.basistech.rosette.api.RosetteAPI;
 import com.basistech.rosette.api.RosetteAPIException;
+import com.basistech.rosette.apimodel.Response;
 import com.basistech.rosette.apimodel.SentimentResponse;
+import com.basistech.rosette.apimodel.jackson.ApiModelMixinModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -28,6 +34,9 @@ import java.util.Scanner;
  * @author EQ
  */
 public class ProcesingText {
+    
+    private static final String KEY_PROP_NAME = "c21fd4214e81308af3f89a9b9a84e041";
+    private static final String URL_PROP_NAME = "rosette.api.altUrl";
     
     public void procesarTexto(String text) throws IOException, RosetteAPIException{
        // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
@@ -95,10 +104,29 @@ public class ProcesingText {
 
     }
     
-        RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey("c21fd4214e81308af3f89a9b9a84e041").build();
-        SentimentResponse response = rosetteAPI.getSentiment(text);
-        System.out.println(response);
+        
     
     }
     
+    public void probandoRosette(String text) throws RosetteAPIException, IOException{
+        RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey(KEY_PROP_NAME).build();
+        SentimentResponse response = rosetteAPI.getSentiment(text);
+        System.out.println(responseToJson(response));
+    }
+    
+    
+    protected static String responseToJson(Response response) throws JsonProcessingException {
+        ObjectMapper mapper = ApiModelMixinModule.setupObjectMapper(new ObjectMapper());
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return mapper.writeValueAsString(response);
+    }
+    
+    protected String getAltUrlFromSystemProperty() {
+        String altUrlStr = System.getProperty(URL_PROP_NAME);
+        if (altUrlStr == null || altUrlStr.trim().length() < 1) {
+            altUrlStr = "https://api.rosette.com/rest/v1";
+        }
+        return altUrlStr.trim();
+    }
 }
