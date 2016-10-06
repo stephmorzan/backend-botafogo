@@ -5,8 +5,11 @@
  */
 package morzan.botafogo.models;
 
+import com.basistech.rosette.api.MorphologicalFeature;
 import com.basistech.rosette.api.RosetteAPI;
 import com.basistech.rosette.api.RosetteAPIException;
+import com.basistech.rosette.apimodel.EntitiesResponse;
+import com.basistech.rosette.apimodel.MorphologyResponse;
 import com.basistech.rosette.apimodel.Response;
 import com.basistech.rosette.apimodel.SentimentResponse;
 import com.basistech.rosette.apimodel.jackson.ApiModelMixinModule;
@@ -24,10 +27,16 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.naming.Context;
+import morzan.botafogo.beans.Lexiword;
 
 /**
  *
@@ -38,7 +47,9 @@ public class ProcesingText {
     private static final String KEY_PROP_NAME = "c21fd4214e81308af3f89a9b9a84e041";
     private static final String URL_PROP_NAME = "rosette.api.altUrl";
     
-    public void procesarTexto(String text) throws IOException, RosetteAPIException{
+    ReadingLexicon readingLexicon = new ReadingLexicon();
+    
+    public void posText(String text) throws IOException, RosetteAPIException{
        // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     Properties props = new Properties();
     props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
@@ -46,11 +57,9 @@ public class ProcesingText {
     props.setProperty("pos.model", "edu/stanford/nlp/models/pos-tagger/spanish/spanish-distsim.tagger");
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
     
-    List<String> lemmas = new LinkedList<String>();
-
     
     // read some text from the file..
-    File inputFile = new File("src/test/resources/sample-content.txt");
+    //File inputFile = new File("src/test/resources/sample-content.txt");
     //String text = Files.toString(inputFile, Charset.forName("UTF-8"));
       
 
@@ -75,14 +84,15 @@ public class ProcesingText {
         // this is the NER label of the token
         String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
         
-        lemmas.add(token.get(LemmaAnnotation.class));
-        
         System.out.println("word: " + word + " pos: " + pos + " ne:" + ne);
+        
+        /*if (cleanPoints(word)==false){
+            words.add(word);
+        }*/
+        
+        
       }
-
-      for(String lemma: lemmas){
-          System.out.println("lemma: " + lemma);
-      }
+      
       
       // this is the parse tree of the current sentence
       /*Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
@@ -93,27 +103,75 @@ public class ProcesingText {
       System.out.println("dependency graph:\n" + dependencies);
     }
       
-      // This is the coreference link graph
-    // Each chain stores a set of mentions that link to each other,
-    // along with a method for getting the most representative mention
-    // Both sentence and token offsets start at 1!
-    Map<Integer, CorefChain> graph = 
-        document.get(CorefChainAnnotation.class);
-      
       */
 
     }
     
-        
-    
     }
     
-    public void probandoRosette(String text) throws RosetteAPIException, IOException{
+    public double getSentiments(String text) throws RosetteAPIException, IOException{
         RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey(KEY_PROP_NAME).build();
         SentimentResponse response = rosetteAPI.getSentiment(text);
+        //se tiene un arreglo de lemmas con lemmas.getLemmas();
         System.out.println(responseToJson(response));
+        return response.getDocument().getConfidence();
     }
     
+    public List<String> getLemmas(String text) throws IOException, RosetteAPIException{
+        RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey(KEY_PROP_NAME).build();
+        MorphologyResponse lemmas = rosetteAPI.getMorphology(MorphologicalFeature.LEMMAS, text);
+        System.out.println(responseToJson(lemmas));
+        return lemmas.getLemmas();
+    }
+    
+    public void getEntities(String text) throws IOException, RosetteAPIException{
+        RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey(KEY_PROP_NAME).build();
+        EntitiesResponse entities = rosetteAPI.getEntities(text);
+        System.out.println(responseToJson(entities));
+    }
+    
+    public void callingLexicon(String text) throws RosetteAPIException, IOException{
+        this.getSentiments(KEY_PROP_NAME);
+        this.getEntities(text);
+        List<String> lemmas = this.getLemmas(text);
+        for (Iterator<String> iterator = lemmas.iterator(); iterator.hasNext();){
+            String lemma = iterator.next();
+            System.out.println(lemma);
+            if(lemma.equals(".") || lemma.equals(",")){
+                iterator.remove();
+            }
+        }
+        for (String lemma: lemmas){
+            System.out.println(lemma);
+        }
+        
+        List<Lexiword> lexiwords = readingLexicon.readLexicon();
+        if (lexiwords!=null){
+            System.out.println("NO es nulo");
+        }else{
+            System.out.println("SI es nulo");
+        }
+        
+        for (String lemma: lemmas){
+            double points = getValueFromLexicon(lemma, lexiwords);
+        }
+    }
+    
+    public double getValueFromLexicon(String word, List<Lexiword> lexiwords){
+        double punctuation = 0.0d;
+        for (Lexiword lexword: lexiwords){
+            if(lexword.equals(word)){
+                punctuation+=lexword.getMean();
+            }
+        }
+        System.out.println(punctuation);
+        return punctuation;
+    }
+    
+    public double estimateMood(){
+        double acum=0.0d;
+        return acum;
+    }
     
     protected static String responseToJson(Response response) throws JsonProcessingException {
         ObjectMapper mapper = ApiModelMixinModule.setupObjectMapper(new ObjectMapper());
@@ -129,4 +187,15 @@ public class ProcesingText {
         }
         return altUrlStr.trim();
     }
+    
+    /*protected boolean cleanPoints(String token){
+        String pattern = "[.]";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(token);
+        if (m.find()){
+            return false;
+        }else{
+            return true;
+        }
+            }*/
 }

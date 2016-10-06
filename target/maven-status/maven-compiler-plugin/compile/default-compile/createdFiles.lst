@@ -1,0 +1,10 @@
+morzan\botafogo\dto\GenericResponse.class
+morzan\botafogo\models\ReadingLexicon.class
+morzan\botafogo\dto\SignupRequest.class
+morzan\botafogo\models\CallingLexicon.class
+morzan\botafogo\test\SimpleExample.class
+morzan\botafogo\models\ProcesingText.class
+morzan\botafogo\dto\LoginRequest.class
+morzan\botafogo\beans\Lexiword.class
+morzan\botafogo\models\Signup.class
+morzan\botafogo\models\Login.class

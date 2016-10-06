@@ -35,13 +35,19 @@ public class SimpleExample {
     // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     
     Scanner sc = new Scanner(System.in);
-    System.out.println("Hola, ¿qué tal?");
+    System.out.println("Hola, ¿cómo te va hasta ahora?");
     
     String text = sc.nextLine();
     
+    //System.out.println(System.getProperties());
+    
     ProcesingText nlp = new ProcesingText();
-    nlp.procesarTexto(text);
-    nlp.probandoRosette(text);
+    nlp.posText(text);
+    nlp.callingLexicon(text);
+    
+    
+    
+    
   }
 
 }
