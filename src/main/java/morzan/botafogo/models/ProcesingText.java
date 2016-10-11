@@ -9,6 +9,7 @@ import com.basistech.rosette.api.MorphologicalFeature;
 import com.basistech.rosette.api.RosetteAPI;
 import com.basistech.rosette.api.RosetteAPIException;
 import com.basistech.rosette.apimodel.EntitiesResponse;
+import com.basistech.rosette.apimodel.EntityMention;
 import com.basistech.rosette.apimodel.MorphologyResponse;
 import com.basistech.rosette.apimodel.Response;
 import com.basistech.rosette.apimodel.SentimentResponse;
@@ -37,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.naming.Context;
 import morzan.botafogo.beans.Lexiword;
+import morzan.botafogo.snowball.MethodsStemmer;
 
 /**
  *
@@ -57,11 +59,9 @@ public class ProcesingText {
     props.setProperty("pos.model", "edu/stanford/nlp/models/pos-tagger/spanish/spanish-distsim.tagger");
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
     
-    
     // read some text from the file..
     //File inputFile = new File("src/test/resources/sample-content.txt");
     //String text = Files.toString(inputFile, Charset.forName("UTF-8"));
-      
 
     // create an empty Annotation just with the given text
     Annotation document = new Annotation(text);
@@ -90,9 +90,7 @@ public class ProcesingText {
             words.add(word);
         }*/
         
-        
       }
-      
       
       // this is the parse tree of the current sentence
       /*Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
@@ -124,43 +122,69 @@ public class ProcesingText {
         return lemmas.getLemmas();
     }
     
-    public void getEntities(String text) throws IOException, RosetteAPIException{
+    public List<String> getEntities(String text) throws IOException, RosetteAPIException{
         RosetteAPI rosetteAPI = new RosetteAPI.Builder().apiKey(KEY_PROP_NAME).build();
         EntitiesResponse entities = rosetteAPI.getEntities(text);
         System.out.println(responseToJson(entities));
+        List<String> entity = new ArrayList<String>();
+        for(EntityMention mention: entities.getEntities()){
+            entity.add(mention.getMention());
+        }
+        return entity;
     }
     
-    public void callingLexicon(String text) throws RosetteAPIException, IOException{
-        this.getSentiments(KEY_PROP_NAME);
-        this.getEntities(text);
+    public void master(String text) throws IOException, RosetteAPIException{
+        this.posText(text);
+        double confidence = this.getSentiments(text);
+        List<String> lemmas = this.onlyLemmas(text);
+        List<Lexiword> lexiwords = this.callingLexicon(text);
+        List<String> stems = this.stemmingLemma(lemmas);
+        for (String stem: stems){
+            double points = getValueFromLexicon(stem, lexiwords);
+        }
+    }
+    
+    public List<String> onlyLemmas(String text)throws RosetteAPIException, IOException{
+        List<String> entities = this.getEntities(text);
         List<String> lemmas = this.getLemmas(text);
         for (Iterator<String> iterator = lemmas.iterator(); iterator.hasNext();){
             String lemma = iterator.next();
-            System.out.println(lemma);
+            //System.out.println(lemma);
             if(lemma.equals(".") || lemma.equals(",")){
                 iterator.remove();
             }
+//            while (entities.size()>0){
+//                for(String entity: entities){
+//                    if(lemma.equalsIgnoreCase(entity)){
+//                        iterator.remove();
+//                    }
+//                }
+//            }
         }
         for (String lemma: lemmas){
             System.out.println(lemma);
         }
-        
+        return lemmas;
+    }
+    
+    public List<Lexiword> callingLexicon(String text) throws RosetteAPIException, IOException{
         List<Lexiword> lexiwords = readingLexicon.readLexicon();
         if (lexiwords!=null){
             System.out.println("NO es nulo");
+            for (Lexiword lex: lexiwords){
+                System.out.println(lex.getWord() + "\t " + lex.getMean() + "\t " + lex.getStem());
+            }
         }else{
             System.out.println("SI es nulo");
         }
-        
-        for (String lemma: lemmas){
-            double points = getValueFromLexicon(lemma, lexiwords);
-        }
+        return lexiwords;
     }
     
-    public double getValueFromLexicon(String word, List<Lexiword> lexiwords){
+    public double getValueFromLexicon(String stem, List<Lexiword> lexiwords){
         double punctuation = 0.0d;
         for (Lexiword lexword: lexiwords){
-            if(lexword.equals(word)){
+            if(lexword.getStem().equalsIgnoreCase(stem)){
+                System.out.println(lexword.getMean());
                 punctuation+=lexword.getMean();
             }
         }
@@ -168,9 +192,24 @@ public class ProcesingText {
         return punctuation;
     }
     
+    protected List<String> stemmingLemma(List<String> lemmas){
+        MethodsStemmer stemmer = new MethodsStemmer();
+        List<String> stemsFromLemmas = new ArrayList<>();
+        for (String lemma: lemmas){
+            System.out.println(stemmer.getStem(lemma));
+            stemsFromLemmas.add(stemmer.getStem(lemma));
+        }
+        return stemsFromLemmas;
+    }
+    
     public double estimateMood(){
         double acum=0.0d;
         return acum;
+    }
+    
+    public String callingStemmer(String word){
+        MethodsStemmer stemmer = new MethodsStemmer();
+        return stemmer.getStem(word);
     }
     
     protected static String responseToJson(Response response) throws JsonProcessingException {

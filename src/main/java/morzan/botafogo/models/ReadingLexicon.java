@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package morzan.botafogo.models;
 
 import java.io.BufferedReader;
@@ -11,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import morzan.botafogo.beans.Lexiword;
+import morzan.botafogo.snowball.MethodsStemmer;
 
 /**
  *
@@ -19,6 +15,7 @@ import morzan.botafogo.beans.Lexiword;
 public class ReadingLexicon {
     
     private final String lexRoot = "C:\\Documentos\\backend-botafogo\\src\\test\\resources\\Redondo(2007).csv";
+    private MethodsStemmer stemmer = new MethodsStemmer();
     
     public List<Lexiword> readLexicon(){
         List<Lexiword> lexiwords = new ArrayList<>();
@@ -33,10 +30,12 @@ public class ReadingLexicon {
 
                 // use comma as separator
                 String[] words = line.split(cvsSplitBy);
-                System.out.println("Words [word= " + words[2] + " , name=" + words[3] + "]");
+                //System.out.println("Words [word= " + words[2] + " , name=" + words[3] + "]");
                 String word = words[2];
+                String stem = stemmer.getStem(word);
                 double mean = Double.parseDouble(words[3]);
                 Lexiword lex = new Lexiword(word, mean);
+                lex.setStem(stem);
                 lexiwords.add(lex);
             }
 

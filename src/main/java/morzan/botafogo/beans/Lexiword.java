@@ -13,6 +13,7 @@ public class Lexiword {
     
     private String word;
     private double mean;
+    private String stem;
 
     public Lexiword(String word, double mean) {
         this.word = word;
@@ -36,6 +37,14 @@ public class Lexiword {
 
     public void setMean(double mean) {
         this.mean = mean;
+    }
+
+    public String getStem() {
+        return stem;
+    }
+
+    public void setStem(String stem) {
+        this.stem = stem;
     }
     
     
