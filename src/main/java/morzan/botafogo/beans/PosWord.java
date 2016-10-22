@@ -11,21 +11,19 @@ import java.util.List;
  *
  * @author EQ
  */
-public class Lexiword {
+public class PosWord {
     
     private String word;
-    private double mean;
-    private String stem;
-    private String eWord;
+    private String wordtype;
     private List<BhtText> synonyms;
     private List<BhtText> antonyms;
 
-    public Lexiword(String word, double mean) {
-        this.word = word;
-        this.mean = mean;
+    public PosWord() {
     }
 
-    public Lexiword() {
+    public PosWord(String word, String wordtype) {
+        this.word = word;
+        this.wordtype = wordtype;
     }
 
     public String getWord() {
@@ -36,20 +34,12 @@ public class Lexiword {
         this.word = word;
     }
 
-    public double getMean() {
-        return mean;
+    public String getWordtype() {
+        return wordtype;
     }
 
-    public void setMean(double mean) {
-        this.mean = mean;
-    }
-
-    public String getStem() {
-        return stem;
-    }
-
-    public void setStem(String stem) {
-        this.stem = stem;
+    public void setWordtype(String wordtype) {
+        this.wordtype = wordtype;
     }
 
     public List<BhtText> getSynonyms() {
@@ -67,15 +57,6 @@ public class Lexiword {
     public void setAntonyms(List<BhtText> antonyms) {
         this.antonyms = antonyms;
     }
-
-    public String geteWord() {
-        return eWord;
-    }
-
-    public void seteWord(String eWord) {
-        this.eWord = eWord;
-    }
-    
     
     
 }

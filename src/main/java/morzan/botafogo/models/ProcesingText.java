@@ -37,7 +37,9 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.naming.Context;
+import morzan.botafogo.beans.BhtText;
 import morzan.botafogo.beans.Lexiword;
+import morzan.botafogo.beans.PosWord;
 import morzan.botafogo.snowball.MethodsStemmer;
 
 /**
@@ -51,14 +53,28 @@ public class ProcesingText {
     
     ReadingLexicon readingLexicon = new ReadingLexicon();
     
-    public void posText(String text) throws IOException, RosetteAPIException{
+    public void master(String text) throws IOException, RosetteAPIException{
+        List<PosWord> pos = this.posText(text);
+        double confidence = this.getSentiments(text);
+        List<String> lemmas = this.onlyLemmas(text);
+        List<Lexiword> lexiwords = this.callingLexicon(text);
+        List<String> stems = this.stemmingLemma(lemmas);
+        for (String stem: stems){
+            double points = getValueFromLexicon(stem, lexiwords);
+        }
+        double moodEstimate = this.estimateMood(confidence, lemmas.size());
+    }
+    
+    
+    
+    public List<PosWord> posText(String text) throws IOException, RosetteAPIException{
        // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     Properties props = new Properties();
     props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
     props.setProperty("tokenize.language", "es");
     props.setProperty("pos.model", "edu/stanford/nlp/models/pos-tagger/spanish/spanish-distsim.tagger");
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-    
+    List<PosWord> poss = new ArrayList<>();
     // read some text from the file..
     //File inputFile = new File("src/test/resources/sample-content.txt");
     //String text = Files.toString(inputFile, Charset.forName("UTF-8"));
@@ -89,7 +105,10 @@ public class ProcesingText {
         /*if (cleanPoints(word)==false){
             words.add(word);
         }*/
-        
+        if(pos.charAt(0)!='f'){
+        poss.add(new PosWord(word, pos));
+            //System.out.println("agregado: " + word + " - " + pos);
+        }
       }
       
       // this is the parse tree of the current sentence
@@ -104,7 +123,22 @@ public class ProcesingText {
       */
 
     }
+        getSynAntForTokens(poss);
+    return poss;
+    }
     
+    public void getSynAntForTokens(List<PosWord> poss){
+        for (int i = 0; i < poss.size(); i++){
+            PosWord token = poss.get(i);
+            poss.remove(i);
+            //List<BhtText> synonyms = new CallingBigHugeTheasurus().makeSearch(token.getWord(), "syn");
+            //List<BhtText> antonyms = new CallingBigHugeTheasurus().makeSearch(token.getWord(), "ant"); 
+            
+            //token.setSynonyms(synonyms);
+            //token.setAntonyms(antonyms);
+            poss.add(token);
+        }
+        
     }
     
     public double getSentiments(String text) throws RosetteAPIException, IOException{
@@ -133,16 +167,6 @@ public class ProcesingText {
         return entity;
     }
     
-    public void master(String text) throws IOException, RosetteAPIException{
-        this.posText(text);
-        double confidence = this.getSentiments(text);
-        List<String> lemmas = this.onlyLemmas(text);
-        List<Lexiword> lexiwords = this.callingLexicon(text);
-        List<String> stems = this.stemmingLemma(lemmas);
-        for (String stem: stems){
-            double points = getValueFromLexicon(stem, lexiwords);
-        }
-    }
     
     public List<String> onlyLemmas(String text)throws RosetteAPIException, IOException{
         List<String> entities = this.getEntities(text);
@@ -150,7 +174,7 @@ public class ProcesingText {
         for (Iterator<String> iterator = lemmas.iterator(); iterator.hasNext();){
             String lemma = iterator.next();
             //System.out.println(lemma);
-            if(lemma.equals(".") || lemma.equals(",")){
+            if(lemma.equals(".") || lemma.equals(",") || lemma.equals(":")){
                 iterator.remove();
             }
 //            while (entities.size()>0){
@@ -171,9 +195,9 @@ public class ProcesingText {
         List<Lexiword> lexiwords = readingLexicon.readLexicon();
         if (lexiwords!=null){
             System.out.println("NO es nulo");
-            for (Lexiword lex: lexiwords){
-                System.out.println(lex.getWord() + "\t " + lex.getMean() + "\t " + lex.getStem());
-            }
+//            for (Lexiword lex: lexiwords){
+//                System.out.println(lex.getWord() + "\t " + lex.getMean() + "\t " + lex.getStem());
+//            }
         }else{
             System.out.println("SI es nulo");
         }
@@ -184,11 +208,11 @@ public class ProcesingText {
         double punctuation = 0.0d;
         for (Lexiword lexword: lexiwords){
             if(lexword.getStem().equalsIgnoreCase(stem)){
-                System.out.println(lexword.getMean());
+                System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lexword.getStem());
                 punctuation+=lexword.getMean();
             }
         }
-        System.out.println(punctuation);
+        System.out.println(punctuation + " " + stem);
         return punctuation;
     }
     
@@ -202,14 +226,19 @@ public class ProcesingText {
         return stemsFromLemmas;
     }
     
-    public double estimateMood(){
+    public double estimateMood(double punctuation, int quantWords){
         double acum=0.0d;
         return acum;
     }
     
-    public String callingStemmer(String word){
-        MethodsStemmer stemmer = new MethodsStemmer();
-        return stemmer.getStem(word);
+    public int countNo(List<String> lemmas){
+        int cont=0;
+        for(String lemma: lemmas){
+            if(lemma.equalsIgnoreCase("no")){
+                cont++;
+            }
+        }
+        return cont;
     }
     
     protected static String responseToJson(Response response) throws JsonProcessingException {
