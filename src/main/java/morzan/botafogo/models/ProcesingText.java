@@ -51,7 +51,7 @@ public class ProcesingText {
     private static final String KEY_PROP_NAME = "c21fd4214e81308af3f89a9b9a84e041";
     private static final String URL_PROP_NAME = "rosette.api.altUrl";
     
-    ReadingLexicon readingLexicon = new ReadingLexicon();
+    ReadingLexicon readingLexicon = ReadingLexicon.getInstance();
     
     public void master(String text) throws IOException, RosetteAPIException{
         List<PosWord> pos = this.posText(text);
@@ -210,6 +210,8 @@ public class ProcesingText {
             if(lexword.getStem().equalsIgnoreCase(stem)){
                 System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lexword.getStem());
                 punctuation+=lexword.getMean();
+            }else{
+                
             }
         }
         System.out.println(punctuation + " " + stem);

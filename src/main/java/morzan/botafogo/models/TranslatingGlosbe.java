@@ -5,6 +5,7 @@
  */
 package morzan.botafogo.models;
 
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,26 +42,40 @@ public class TranslatingGlosbe {
             List<String> lines = new ArrayList<>();
             List posLines = new ArrayList();
             int cont = 0;
+            
+            
             while((inputLine=br.readLine())!=null){
-                System.out.println(inputLine);
-                lines.add(inputLine);
-                if(inputLine.equals("    \"phrase\" : {")){
+//                System.out.println(inputLine);
+                String line = inputLine.replaceAll("  ", "");
+                System.out.println(line);
+                System.out.println(line.length());
+                System.out.println(line.substring(1));
+                lines.add(line);
+                
+                if(line.equals("\"phrase\" : {")){
                     posLines.add(++cont);
                 }
+//                if(line.substring(0, 9).equals("\"text\" : \""))
                 cont++;
             }
-            /*int firstPart = lines.size();
+            
+            int firstPart = lines.size();
             for (int i=0; i<posLines.size(); i++){
-                //System.out.println(posLines.get(i));
-                String syn = lines.get((int) posLines.get(i)).substring(6);
-                lines.add(syn);
+//                System.out.println(posLines.get(i));
+                System.out.println(lines.get((int)posLines.get(i)));
+                String text = lines.get((int)posLines.get(i));
+//                String syn = lines.get((int) posLines.get(i)).substring(5);
+//                System.out.println(syn);
+//                lines.add(syn);
             }
-            for(int j=0; j<firstPart; j++){
-                lines.remove(j);
-            }
-            for(String a : lines){
-                System.out.println(a);
-            }*/
+            
+            
+//            for(int j=0; j<firstPart; j++){
+//                lines.remove(j);
+//            }
+//            for(String a : lines){
+//                System.out.println(a);
+//            }
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(TranslatingGlosbe.class.getName()).log(Level.SEVERE, null, ex);

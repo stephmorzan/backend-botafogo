@@ -17,8 +17,7 @@ public class Lexiword {
     private double mean;
     private String stem;
     private String eWord;
-    private List<BhtText> synonyms;
-    private List<BhtText> antonyms;
+    private String eStem;
 
     public Lexiword(String word, double mean) {
         this.word = word;
@@ -52,28 +51,20 @@ public class Lexiword {
         this.stem = stem;
     }
 
-    public List<BhtText> getSynonyms() {
-        return synonyms;
-    }
-
-    public void setSynonyms(List<BhtText> synonyms) {
-        this.synonyms = synonyms;
-    }
-
-    public List<BhtText> getAntonyms() {
-        return antonyms;
-    }
-
-    public void setAntonyms(List<BhtText> antonyms) {
-        this.antonyms = antonyms;
-    }
-
     public String geteWord() {
         return eWord;
     }
 
     public void seteWord(String eWord) {
         this.eWord = eWord;
+    }
+
+    public String geteStem() {
+        return eStem;
+    }
+
+    public void seteStem(String eStem) {
+        this.eStem = eStem;
     }
     
     
