@@ -22,4 +22,15 @@ public class MethodsStemmer {
         
     }
     
+    public String getEStem(String word){
+        EnglishStemmer stemmer = new EnglishStemmer();
+        stemmer.setCurrent(word);
+        if(stemmer.stem()){
+            return stemmer.getCurrent();
+        }else{
+            return "Algo está fallando!!!";
+        }
+        
+    }
+    
 }
