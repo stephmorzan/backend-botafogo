@@ -31,51 +31,41 @@ public class TranslatingGlosbe {
     
     public static void main(String[] args) {
         TranslatingGlosbe globse = new TranslatingGlosbe();
-        globse.getTranslatingSynonyms("acabar");
+        globse.getTranslatingSynonyms("bien");
     }
     
-    public void getTranslatingSynonyms(String spaWord){
+    public List<String> getTranslatingSynonyms(String spaWord){
+        
+        List<String> engSyn = new ArrayList<>();
+        
         try {
             URL url = new URL (ROOT + spaWord + PRETTY);
             BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
             String inputLine;
             List<String> lines = new ArrayList<>();
-            List posLines = new ArrayList();
-            int cont = 0;
             
             
             while((inputLine=br.readLine())!=null){
 //                System.out.println(inputLine);
                 String line = inputLine.replaceAll("  ", "");
-                System.out.println(line);
-                System.out.println(line.length());
-                System.out.println(line.substring(1));
-                lines.add(line);
+//                System.out.println(line);
+//                System.out.println(line.length());
+//                System.out.println(line.substring(1));
+                lines.add(line);   
                 
-                if(line.equals("\"phrase\" : {")){
-                    posLines.add(++cont);
+            }
+            
+            for (int pos=0; pos < lines.size(); pos++){
+                String line = lines.get(pos);
+                if(line.length() > 9 && line.contains("\"text\" : \"") && lines.get(pos-1).equals("\"phrase\" : {")){
+                    line = line.replaceAll("(\")(,)", "");
+                    line = line.replaceAll("(\"text\" : \")", "");
+                    System.out.println(line);
+                    engSyn.add(line);
                 }
-//                if(line.substring(0, 9).equals("\"text\" : \""))
-                cont++;
             }
             
-            int firstPart = lines.size();
-            for (int i=0; i<posLines.size(); i++){
-//                System.out.println(posLines.get(i));
-                System.out.println(lines.get((int)posLines.get(i)));
-                String text = lines.get((int)posLines.get(i));
-//                String syn = lines.get((int) posLines.get(i)).substring(5);
-//                System.out.println(syn);
-//                lines.add(syn);
-            }
-            
-            
-//            for(int j=0; j<firstPart; j++){
-//                lines.remove(j);
-//            }
-//            for(String a : lines){
-//                System.out.println(a);
-//            }
+            return engSyn;
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(TranslatingGlosbe.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,6 +74,8 @@ public class TranslatingGlosbe {
             Logger.getLogger(TranslatingGlosbe.class.getName()).log(Level.SEVERE, null, ex);
             ex.printStackTrace();
         }
+        
+        return engSyn;
     }
     
 }
