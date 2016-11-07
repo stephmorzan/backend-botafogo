@@ -5,15 +5,12 @@
  */
 package morzan.botafogo.models;
 
-import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,13 +23,22 @@ public class TranslatingGlosbe {
     private final String ROOT = "https://glosbe.com/gapi/translate?from=spa&dest=eng&format=json&phrase=";
     private final String PRETTY = "&pretty=true";
     
-    public TranslatingGlosbe() {
+    private static TranslatingGlosbe singleton;
+    
+    public static TranslatingGlosbe getInstance(){
+        if (singleton == null){
+            singleton = new TranslatingGlosbe();
+        }
+        return singleton;
     }
     
-    public static void main(String[] args) {
-        TranslatingGlosbe globse = new TranslatingGlosbe();
-        globse.getTranslatingSynonyms("bien");
+    private TranslatingGlosbe() {
     }
+    
+//    public static void main(String[] args) {
+//        TranslatingGlosbe globse = new TranslatingGlosbe();
+//        globse.getTranslatingSynonyms("bien");
+//    }
     
     public List<String> getTranslatingSynonyms(String spaWord){
         

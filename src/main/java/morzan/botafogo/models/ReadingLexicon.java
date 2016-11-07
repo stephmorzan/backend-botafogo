@@ -50,7 +50,7 @@ public class ReadingLexicon {
                 String stem = words[30];
                 //System.out.println(stemmer.getStem(words[31]));
                 String eStem = words[31];
-                System.out.println(stemmer.getEStem(eWord));
+//                System.out.println(stemmer.getEStem(eWord));
                 double mean = Double.parseDouble(words[3]);
 //                System.out.println(words[29]);
                 Lexiword lex = new Lexiword(word, mean);
