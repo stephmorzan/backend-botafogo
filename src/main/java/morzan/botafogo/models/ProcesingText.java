@@ -61,9 +61,9 @@ public class ProcesingText {
         List<String> stems = this.stemmingLemma(lemmas);
         List<ProcesedWord> procesedWords = this.joiningThreeThings(lemmas, engLemmas, stems);
         
-//        for (String stem : stems) {
-//            double points = getValueFromLexicon(stem, lexiwords, engLemmas);
-//        }
+        for (ProcesedWord compilado: procesedWords) {
+            double points = getValueFromLexicon(compilado.getStem(), lexiwords, compilado.getEngSyns());
+        }
 //        double moodEstimate = this.estimateMood(confidence, lemmas.size());
     }
 
@@ -222,25 +222,60 @@ public class ProcesingText {
             composedWord.setEngSyns(engLemmas.get(spa_lemmas));
             composedWord.setStem(stems.get(i));
             procesedWords.add(composedWord);
-            System.out.println("Se creó con éxito");
         }
+        System.out.println("Se creó con éxito");
         return procesedWords;
     }
     
-    public double getValueFromLexicon(String stem, List<Lexiword> lexiwords, Map<String, List<String>> engLemmas) {
+    public double getValueFromLexicon(String stem, List<Lexiword> lexiwords, List<String> engLemmas) {
         double punctuation = 0.0d;
+        boolean encontrado = false;
         for (Lexiword lexword : lexiwords) {
             if (lexword.getStem().equalsIgnoreCase(stem)) {
                 System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lexword.getStem());
                 punctuation += lexword.getMean();
-            } else {
-                lexword.geteWord();
+                encontrado = true;
+                if (encontrado == true){
+                    break;
+                }
             }
+            int c = 0;
+            int aux = 0;
+            while (encontrado== false){
+                String eWord = lexword.geteWord();
+                for (String engLemma: engLemmas){
+//                    System.out.println(eWord + "\t" + engLemma);        
+                    if (eWord.equalsIgnoreCase(engLemma)){
+                        System.out.println(eWord);
+                        System.out.println(engLemma);
+                        aux += lexword.getMean();
+                        System.out.println("Puntuación recogida = " + aux);
+                        encontrado=true;
+                        break;
+                    }
+                }
+            }
+//                String eWord = lexword.geteWord();
+//                for (String engLemma: engLemmas){
+//                    System.out.println(eWord + "\t" + engLemma);
+//                            
+//                    if (eWord.equalsIgnoreCase(engLemma)){
+//                        System.out.println(eWord);
+//                        System.out.println(engLemma);
+//                        punctuation += lexword.getMean();
+//                        break;
+//                    }
+//                }
+            
         }
         System.out.println(punctuation + " " + stem);
         return punctuation;
     }
 
+    protected boolean equalStems(){
+        return true;
+    }
+    
     public double estimateMood(double punctuation, int quantWords) {
         double acum = 0.0d;
         return acum;
