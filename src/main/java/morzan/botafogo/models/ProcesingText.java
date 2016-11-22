@@ -230,52 +230,87 @@ public class ProcesingText {
     public double getValueFromLexicon(String stem, List<Lexiword> lexiwords, List<String> engLemmas) {
         double punctuation = 0.0d;
         boolean encontrado = false;
+        int c = 0;
+        float aux = 0;
+        
         for (Lexiword lexword : lexiwords) {
             if (lexword.getStem().equalsIgnoreCase(stem)) {
                 System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lexword.getStem());
                 punctuation += lexword.getMean();
+                System.out.println(punctuation + " " + stem);
                 encontrado = true;
-                if (encontrado == true){
-                    break;
-                }
             }
-            int c = 0;
-            int aux = 0;
-            while (encontrado== false){
-                String eWord = lexword.geteWord();
-                for (String engLemma: engLemmas){
-//                    System.out.println(eWord + "\t" + engLemma);        
-                    if (eWord.equalsIgnoreCase(engLemma)){
-                        System.out.println(eWord);
-                        System.out.println(engLemma);
-                        aux += lexword.getMean();
-                        System.out.println("Puntuación recogida = " + aux);
-                        encontrado=true;
-                        break;
-                    }
-                }
-            }
+        }
+        
+        //        if (encontrado == false && punctuation==0.0d){
+//            for (Lexiword lexword : lexiwords) {
+//                for (String engLemma: engLemmas){
+////                    System.out.println(eWord + "\t" + engLemma);
+//        
+//                    if (lexword.geteWord().equalsIgnoreCase(engLemma)){
+//                        System.out.println(lexword.geteWord());
+//                        System.out.println(engLemma);
+//                        System.out.println(lexword.getMean());
+//                        aux += lexword.getMean();
+//                        System.out.println("valor de aux: " + aux);
+//                        encontrado = true;
+//                        
+//                    }
+//                    if (encontrado == true){
+//                        punctuation += aux;
+//                        
+//                    }
+//
+//                }
+//                punctuation += aux;
+//            }
+//                
+//            }    
+            
+//            int c = 0;
+//            int aux = 0;
+//            while (encontrado== false){
 //                String eWord = lexword.geteWord();
 //                for (String engLemma: engLemmas){
-//                    System.out.println(eWord + "\t" + engLemma);
-//                            
+////                    System.out.println(eWord + "\t" + engLemma);        
 //                    if (eWord.equalsIgnoreCase(engLemma)){
 //                        System.out.println(eWord);
 //                        System.out.println(engLemma);
-//                        punctuation += lexword.getMean();
+//                        aux += lexword.getMean();
+//                        System.out.println("Puntuación recogida = " + aux);
+//                        encontrado=true;
 //                        break;
 //                    }
+//                    encontrado=true;
 //                }
-            
-        }
+//            }
+//            if (encontrado == false && punctuation==0.0d){
+//                for (String engLemma: engLemmas){
+////                    System.out.println(eWord + "\t" + engLemma);
+////                    while(encontrado == true){        
+//                    if (lexword.geteWord().equalsIgnoreCase(engLemma)){
+//                        System.out.println(lexword.geteWord());
+//                        System.out.println(engLemma);
+//                        System.out.println(lexword.getMean());
+//                        aux += lexword.getMean();
+//                        System.out.println(aux);
+//                        encontrado = true;
+//                        
+//                    }
+//                    if (encontrado == true){
+//                        punctuation += aux;
+//                        
+//                    }
+////                    }
+//                }
+//                //punctuation += aux;
+//                
+//            }
+        
         System.out.println(punctuation + " " + stem);
         return punctuation;
     }
 
-    protected boolean equalStems(){
-        return true;
-    }
-    
     public double estimateMood(double punctuation, int quantWords) {
         double acum = 0.0d;
         return acum;
