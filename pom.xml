@@ -7,7 +7,7 @@
     <artifactId>backend-botafogo</artifactId>
     <version>1</version>
     <name>Backend-Botafogo</name>
-    <description>Examples of Stanford Core NLP and Stanford Parser API usage </description>
+    <description>Solución de Tesis, el cual calcula, a partir de una respuesta escrita, cuál es su estado de ánimo.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

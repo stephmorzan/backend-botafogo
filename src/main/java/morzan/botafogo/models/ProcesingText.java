@@ -223,7 +223,7 @@ public class ProcesingText {
             composedWord.setStem(stems.get(i));
             procesedWords.add(composedWord);
         }
-        System.out.println("Se creó con éxito");
+        System.out.println("Se creÃ³ con Ã©xito");
         return procesedWords;
     }
     
@@ -242,30 +242,26 @@ public class ProcesingText {
             }
         }
         
-        //        if (encontrado == false && punctuation==0.0d){
-//            for (Lexiword lexword : lexiwords) {
-//                for (String engLemma: engLemmas){
-////                    System.out.println(eWord + "\t" + engLemma);
-//        
-//                    if (lexword.geteWord().equalsIgnoreCase(engLemma)){
-//                        System.out.println(lexword.geteWord());
-//                        System.out.println(engLemma);
-//                        System.out.println(lexword.getMean());
-//                        aux += lexword.getMean();
-//                        System.out.println("valor de aux: " + aux);
-//                        encontrado = true;
-//                        
-//                    }
-//                    if (encontrado == true){
-//                        punctuation += aux;
-//                        
-//                    }
-//
-//                }
-//                punctuation += aux;
-//            }
-//                
-//            }    
+        if (encontrado == false && punctuation==0.0d){
+            for (Lexiword lexword : lexiwords) {
+                for (String engLemma: engLemmas){
+//                    System.out.println(eWord + "\t" + engLemma);
+        
+                    if (lexword.geteWord().equalsIgnoreCase(engLemma)){
+                        System.out.println(lexword.geteWord());
+                        System.out.println(engLemma);
+                        System.out.println(lexword.getMean());
+                        aux += lexword.getMean();
+                        System.out.println("valor de aux: " + aux);
+                        encontrado = true;
+                        
+                    }
+
+                }
+                
+            }
+                punctuation += aux;
+            }    
             
 //            int c = 0;
 //            int aux = 0;

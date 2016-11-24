@@ -48,6 +48,7 @@ public class ReadingLexicon {
                 String word = words[2];
                 
                 String stem = words[30];
+//                System.out.println(stem);
                 //System.out.println(stemmer.getStem(words[31]));
                 String eStem = words[31];
 //                System.out.println(stemmer.getEStem(eWord));
