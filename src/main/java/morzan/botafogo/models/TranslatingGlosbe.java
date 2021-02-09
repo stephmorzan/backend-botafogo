@@ -66,7 +66,7 @@ public class TranslatingGlosbe {
                 if(line.length() > 9 && line.contains("\"text\" : \"") && lines.get(pos-1).equals("\"phrase\" : {")){
                     line = line.replaceAll("(\")(,)", "");
                     line = line.replaceAll("(\"text\" : \")", "");
-                    System.out.println(line);
+                    //System.out.println(line);
                     engSyn.add(line);
                 }
             }

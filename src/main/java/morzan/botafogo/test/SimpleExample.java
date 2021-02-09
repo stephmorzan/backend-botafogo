@@ -25,10 +25,7 @@ public class SimpleExample {
     //System.out.println(System.getProperties());
     
     ProcesingText nlp = new ProcesingText();
-    nlp.master(text);
-    
-    
-    
+    nlp.master(text);   
     
   }
 

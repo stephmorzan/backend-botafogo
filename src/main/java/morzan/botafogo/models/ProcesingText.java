@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package morzan.botafogo.models;
 
 import com.basistech.rosette.api.MorphologicalFeature;
@@ -33,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import morzan.botafogo.beans.Lexiword;
+import morzan.botafogo.beans.NumbResults;
+import morzan.botafogo.beans.NumberValues;
 import morzan.botafogo.beans.PosWord;
 import morzan.botafogo.beans.ProcesedWord;
 import morzan.botafogo.snowball.MethodsStemmer;
@@ -50,21 +47,61 @@ public class ProcesingText {
     TranslatingGlosbe translatingGlosbe = TranslatingGlosbe.getInstance();
     List<Lexiword> lexiwords = new ArrayList<>();
 
-    public void master(String text) throws IOException, RosetteAPIException {
+    public NumbResults master(String text) throws IOException, RosetteAPIException {
         List<PosWord> pos = this.posText(text);
+        List<String> conjunctions = this.removingConjuctions(pos);
         double confidence = this.getSentiments(text);
-        List<String> lemmas = this.onlyLemmas(text);
+        List<String> lemmas = this.onlyLemmas(text, conjunctions);
         Map<String, List<String>> engLemmas = this.getEngSynsForSentence(lemmas);
         if (lexiwords == null || lexiwords.isEmpty()) {
             lexiwords = this.callingLexicon();
         }
         List<String> stems = this.stemmingLemma(lemmas);
         List<ProcesedWord> procesedWords = this.joiningThreeThings(lemmas, engLemmas, stems);
+
+        double punctuation = 0;
+        float posPunct = 0;
+        float negPunct = 0;
+        float neuPunct = 0;
         
-        for (ProcesedWord compilado: procesedWords) {
-            double points = getValueFromLexicon(compilado.getStem(), lexiwords, compilado.getEngSyns());
+        int posCount = 0;
+        int negCount = 0;
+        int neuCount = 0;
+        int c = 0;
+
+        for (ProcesedWord compilado : procesedWords) {
+            NumberValues results = getValueFromLexicon(compilado.getStem(), compilado.getLemma(), lexiwords, compilado.getEngSyns());
+            punctuation += results.getPunctuation();
+            posPunct += results.getPosPunct();
+            negPunct += results.getNegPunct();
+            neuPunct += results.getNeutralPunct();
+            posCount += results.getPosCount();
+            negCount += results.getNegCount();
+            neuCount += results.getNeuCount();
+            c++;
         }
-//        double moodEstimate = this.estimateMood(confidence, lemmas.size());
+        
+        System.out.println("*************************************************");
+        System.out.println("Valor de negPunct = " + negPunct);
+        System.out.println("Valor de neuPunct = " + neuPunct);
+        System.out.println("Valor de posPunct = " + posPunct);
+        System.out.println("Valor de negCount = " + negCount);
+        System.out.println("Valor de neuCount = " + neuCount);
+        System.out.println("Valor de posCount = " + posCount);
+        System.out.println("Valor de puntuación final = " + punctuation);
+        double moodEstimate = this.estimateMood(punctuation, c);
+        System.out.println("valor de herramienta: " + moodEstimate);
+        System.out.println("valor de Rosette API: " + confidence);
+        double piePos = (posPunct*360/punctuation);
+        double pieNeg = (negPunct*360/punctuation);
+        double pieNeu = (neuPunct*360/punctuation);
+        System.out.println("% de emociones positivas: " + piePos);
+        System.out.println("% de emociones negativas: " + pieNeg);
+        System.out.println("% de emociones neutras: " + pieNeu);
+        
+        NumbResults finale = new NumbResults(piePos, pieNeg, pieNeu);
+        finale.setEstimate(moodEstimate);
+        return finale;
     }
 
     public List<PosWord> posText(String text) throws IOException, RosetteAPIException {
@@ -107,7 +144,7 @@ public class ProcesingText {
                  }*/
                 if (pos.charAt(0) != 'f') {
                     poss.add(new PosWord(word, pos));
-                    System.out.println("agregado: " + word + " - " + pos);
+                    //System.out.println("agregado: " + word + " - " + pos);
                 }
             }
 
@@ -122,9 +159,8 @@ public class ProcesingText {
       
              */
         }
-        
+
 //        getSynAntForTokens(poss);
-        
         return poss;
     }
 
@@ -154,17 +190,26 @@ public class ProcesingText {
         return entity;
     }
 
-    public List<String> onlyLemmas(String text) throws RosetteAPIException, IOException {
+    public List<String> onlyLemmas(String text, List<String> conjunctions) throws RosetteAPIException, IOException {
         List<String> entities = this.getEntities(text);
         List<String> lemmas = this.getLemmas(text);
         Iterator<String> iterator = lemmas.iterator();
         while (iterator.hasNext()) {
             String lemma = iterator.next();
             //System.out.println(lemma);
-            if (lemma.equals(".") || lemma.equals(",") || lemma.equals(":")) {
+            if (lemma.equals(".") || lemma.equals(",") || lemma.equals(":") || lemma.equals(";") || lemma.equals("!")) {
                 iterator.remove();
+            } else {
+                if (!conjunctions.isEmpty() || conjunctions!=null) {
+                    for (String c : conjunctions) {
+                        if (lemma.equalsIgnoreCase(c)) {
+                            iterator.remove();
+                        }
+                    }
+                }
+
             }
-            
+
 //            while (entities.size()>0){
 //                for(String entity: entities){
 //                    if(lemma.equalsIgnoreCase(entity)){
@@ -179,6 +224,16 @@ public class ProcesingText {
         return lemmas;
     }
 
+    protected List<String> removingConjuctions(List<PosWord> pos){
+        List<String> conjunctions = new ArrayList<>();
+        for (PosWord p: pos){
+            if(p.getWordtype().equalsIgnoreCase("cs")){
+                conjunctions.add(p.getWord());
+            }
+        }
+        return conjunctions;
+    }
+    
     protected Map<String, List<String>> getEngSynsForSentence(List<String> spa_lemmas) {
         Map<String, List<String>> eSynSentence = new HashMap<>();
         List<String> listSyns = new ArrayList<>();
@@ -207,15 +262,15 @@ public class ProcesingText {
         MethodsStemmer stemmer = new MethodsStemmer();
         List<String> stemsFromLemmas = new ArrayList<>();
         for (String lemma : lemmas) {
-            System.out.println(stemmer.getStem(lemma));
+            //System.out.println(stemmer.getStem(lemma));
             stemsFromLemmas.add(stemmer.getStem(lemma));
         }
         return stemsFromLemmas;
     }
 
-    public List<ProcesedWord> joiningThreeThings(List<String> lemmas, Map<String, List<String>> engLemmas, List<String> stems){
+    public List<ProcesedWord> joiningThreeThings(List<String> lemmas, Map<String, List<String>> engLemmas, List<String> stems) {
         List<ProcesedWord> procesedWords = new ArrayList<>();
-        for (int i = 0; i < lemmas.size(); i++){
+        for (int i = 0; i < lemmas.size(); i++) {
             String spa_lemmas = lemmas.get(i);
             ProcesedWord composedWord = new ProcesedWord();
             composedWord.setLemma(spa_lemmas);
@@ -223,46 +278,114 @@ public class ProcesingText {
             composedWord.setStem(stems.get(i));
             procesedWords.add(composedWord);
         }
-        System.out.println("Se creÃ³ con Ã©xito");
+        System.out.println("Se creó con éxito");
         return procesedWords;
     }
-    
-    public double getValueFromLexicon(String stem, List<Lexiword> lexiwords, List<String> engLemmas) {
+
+    public NumberValues getValueFromLexicon(String stem, String lemma, List<Lexiword> lexiwords, List<String> engLemmas) {
         double punctuation = 0.0d;
         boolean encontrado = false;
-        int c = 0;
-        float aux = 0;
-        
+        float aux = 0f;
+        NumberValues results = new NumberValues();
+        float posPunct = 0;
+        float negPunct = 0;
+        float neuPunct = 0;
+        int posCount = 0;
+        int negCount = 0;
+        int neuCount = 0;
+
         for (Lexiword lexword : lexiwords) {
-            if (lexword.getStem().equalsIgnoreCase(stem)) {
+            if (lexword.getWord().equalsIgnoreCase(lemma)) {
+                System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lemma);
+                if (lexword.getMean() < 3) {
+                    negPunct += lexword.getMean();
+                    negCount++;
+                    System.out.println("Valor de negPunct = " + negPunct);
+                } else if (lexword.getMean() >= 3 && lexword.getMean() < 6) {
+                    neuPunct += lexword.getMean();
+                    neuCount++;
+                    System.out.println("Valor de negPunct = " + neuPunct);
+                } else if (lexword.getMean() >= 6) {
+                    posPunct += lexword.getMean();
+                    posCount++;
+                    System.out.println("Valor de negPunct = " + posPunct);
+                }
+                punctuation += lexword.getMean();
+                System.out.println(punctuation + " " + stem);
+                encontrado = true;
+                break;
+            } else {
+                if (lexword.getStem().equalsIgnoreCase(stem)) {
                 System.out.println(lexword.getMean() + " " + lexword.getWord() + " " + lexword.getStem());
+                if (lexword.getMean() < 3) {
+                    negPunct += lexword.getMean();
+                    negCount++;
+                    System.out.println("Valor de negPunct = " + negPunct);
+                } else if (lexword.getMean() >= 3 && lexword.getMean() < 6) {
+                    neuPunct += lexword.getMean();
+                    neuCount++;
+                    System.out.println("Valor de negPunct = " + neuPunct);
+                } else if (lexword.getMean() >= 6) {
+                    posPunct += lexword.getMean();
+                    posCount++;
+                    System.out.println("Valor de negPunct = " + posPunct);
+                }
                 punctuation += lexword.getMean();
                 System.out.println(punctuation + " " + stem);
                 encontrado = true;
             }
+            }
         }
-        
-        if (encontrado == false && punctuation==0.0d){
+
+        if (encontrado == false && punctuation == 0.0d) {
             for (Lexiword lexword : lexiwords) {
-                for (String engLemma: engLemmas){
+                for (String engLemma : engLemmas) {
 //                    System.out.println(eWord + "\t" + engLemma);
-        
-                    if (lexword.geteWord().equalsIgnoreCase(engLemma)){
+                    if (lexword.geteWord().equalsIgnoreCase(engLemma)) {
                         System.out.println(lexword.geteWord());
                         System.out.println(engLemma);
                         System.out.println(lexword.getMean());
+                        if (lexword.getMean() < 3) {
+                            negPunct += lexword.getMean();
+                            negCount++;
+                            System.out.println("Valor de negPunct en aux = " + negPunct);
+                        } else if (lexword.getMean() >= 3 && lexword.getMean() < 6) {
+                            neuPunct += lexword.getMean();
+                            neuCount++;
+                            System.out.println("Valor de negPunct en aux = " + neuPunct);
+                        } else if (lexword.getMean() >= 6) {
+                            posPunct += lexword.getMean();
+                            posCount++;
+                            System.out.println("Valor de negPunct en aux = " + posPunct);
+                        }
                         aux += lexword.getMean();
                         System.out.println("valor de aux: " + aux);
                         encontrado = true;
-                        
+
                     }
 
                 }
-                
+
             }
-                punctuation += aux;
-            }    
-            
+            if ((posCount + negCount + neuCount) != 0) {
+                double prom = aux / (posCount + negCount + neuCount);
+                System.out.println("valor de cont = " + (posCount + negCount + neuCount));
+                System.out.println("Valor de prom = " + prom);
+                punctuation += prom;//prom;
+                System.out.println("Valor de punctuation = " + punctuation);
+                posCount = negCount = neuCount = 0;
+                if(punctuation < 3){
+                    negCount = 1;
+                }else if (punctuation >= 3 && punctuation < 6){
+                    neuCount = 1;
+                }else{
+                    posCount = 1;
+                }
+            } else {
+                punctuation += 0.0d;
+            }
+        }
+
 //            int c = 0;
 //            int aux = 0;
 //            while (encontrado== false){
@@ -273,7 +396,7 @@ public class ProcesingText {
 //                        System.out.println(eWord);
 //                        System.out.println(engLemma);
 //                        aux += lexword.getMean();
-//                        System.out.println("Puntuación recogida = " + aux);
+//                        System.out.println("PuntuaciÃ³n recogida = " + aux);
 //                        encontrado=true;
 //                        break;
 //                    }
@@ -302,17 +425,37 @@ public class ProcesingText {
 //                //punctuation += aux;
 //                
 //            }
-        
         System.out.println(punctuation + " " + stem);
-        return punctuation;
+        results.setPunctuation(punctuation);
+        results.setPosPunct(posPunct);
+        results.setNegPunct(negPunct);
+        results.setNeutralPunct(neuPunct);
+        results.setNegCount(negCount);
+        results.setNeuCount(neuCount);
+        results.setPosCount(posCount);
+        System.out.println("Valor de negPunct = " + negPunct);
+        System.out.println("Valor de neuPunct = " + neuPunct);
+        System.out.println("Valor de posPunct = " + posPunct);
+        System.out.println("Valor de negCount = " + negCount);
+        System.out.println("Valor de neuCount = " + neuCount);
+        System.out.println("Valor de posCount = " + posCount);
+        return results;
     }
 
     public double estimateMood(double punctuation, int quantWords) {
-        double acum = 0.0d;
-        return acum;
+        System.out.println("cant de palabras: " + quantWords);
+        return punctuation/quantWords;
     }
-
-    public int countNo(List<String> lemmas) {
+    
+    public String determineMood(){
+        if(true){
+            return "positivo";
+        }else{
+            return "negativo";
+        }
+    }
+    
+    protected int countNo(List<String> lemmas) {
         int cont = 0;
         for (String lemma : lemmas) {
             if (lemma.equalsIgnoreCase("no")) {

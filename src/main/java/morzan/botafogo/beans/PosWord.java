@@ -15,8 +15,7 @@ public class PosWord {
     
     private String word;
     private String wordtype;
-    private List<BhtText> synonyms;
-    private List<BhtText> antonyms;
+    
 
     public PosWord() {
     }
@@ -42,21 +41,5 @@ public class PosWord {
         this.wordtype = wordtype;
     }
 
-    public List<BhtText> getSynonyms() {
-        return synonyms;
-    }
-
-    public void setSynonyms(List<BhtText> synonyms) {
-        this.synonyms = synonyms;
-    }
-
-    public List<BhtText> getAntonyms() {
-        return antonyms;
-    }
-
-    public void setAntonyms(List<BhtText> antonyms) {
-        this.antonyms = antonyms;
-    }
-    
     
 }
